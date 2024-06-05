@@ -1,0 +1,125 @@
+import EndPoints from "./route";
+
+type TMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
+
+interface ICons {
+  baseUrl?: string;
+  options?: RequestInit;
+}
+interface IOptions extends RequestInit {
+  params?: Record<string, string>;
+}
+
+const DEFAULT_HEADERS = {
+  accept: "application/json",
+  "content-type": "application/json",
+};
+
+export class Api {
+  private baseUrl: string;
+  private options: RequestInit;
+
+  constructor({ baseUrl = "", options }: ICons) {
+    this.baseUrl = baseUrl;
+    this.options = { ...options, method: "GET", headers: DEFAULT_HEADERS };
+  }
+
+  private parseResponse<T>(res: Response) {
+    return new Promise(async (resolve: (value: T) => void, reject) => {
+      try {
+        if (!res.ok) return reject(res.json());
+        resolve(await res.json());
+      } catch (e) {
+        reject(e);
+      }
+    });
+  }
+
+  create(options) {
+    return new Api({ ...this.options, ...options });
+  }
+
+  get request() {
+    return this.options;
+  }
+
+  setHeaders(headers: HeadersInit) {
+    this.options = {
+      ...this.options,
+      headers: { ...this.options.headers, ...headers },
+    };
+  }
+
+  authorize(token: string) {
+    this.options.headers!["authorization"] = "Bearer " + token;
+    return this;
+  }
+
+  private parseUri(url: string, options?: IOptions) {
+    const uri = url.startsWith("http") ? url : this.baseUrl + url;
+    if (options?.params) {
+      const params = new URLSearchParams({
+        ...options.params,
+      });
+      return uri + "?" + params;
+    }
+    return uri;
+  }
+
+  private parseBody(body: string | object) {
+    return typeof body == "object" ? JSON.stringify(body) : body;
+  }
+
+  async get<T>(url: string, options: IOptions = {}): Promise<T> {
+    return fetch(this.parseUri(url, options), {
+      ...this.options,
+      ...options,
+      cache: "no-cache",
+    }).then((res) => this.parseResponse<T>(res));
+  }
+
+  async post<T>(url: string, body: object | string): Promise<T> {
+    return fetch(this.parseUri(url), {
+      ...this.options,
+      method: "POST",
+      body: this.parseBody(body),
+    }).then((res) => this.parseResponse<T>(res));
+  }
+
+  async put<T>(url: string, body: any): Promise<T> {
+    return fetch(this.parseUri(url), {
+      ...this.options,
+      method: "PUT",
+      body: this.parseBody(body),
+    }).then((res) => this.parseResponse<T>(res));
+  }
+
+  async delete(url: string, options: IOptions = {}) {
+    const uri = this.parseUri(url, options);
+    return fetch(uri, {
+      ...this.options,
+      method: "DELETE",
+    });
+  }
+
+  async patch<T>(url: string, body: string | object): Promise<T> {
+    return fetch(this.baseUrl + url, {
+      ...this.options,
+      method: "PATCH",
+      body: this.parseBody(body),
+    }).then((res) => this.parseResponse<T>(res));
+  }
+}
+
+const instance = new Api({
+  baseUrl: "http://localhost:8000/crm/",
+  // baseUrl: "https://cms.kgs.life/",
+  options: {
+    headers: {
+      accept: "application/json",
+      Origin: "http://localhost:5001",
+    },
+  },
+});
+
+export default instance;
