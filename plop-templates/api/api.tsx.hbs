@@ -1,4 +1,6 @@
-import EndPoints from "./route";
+const EndPoints = {
+  BASE: "", //put your base url here
+};
 
 type TMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 
@@ -112,12 +114,11 @@ export class Api {
 }
 
 const instance = new Api({
-  baseUrl: "http://localhost:8000/crm/",
-  // baseUrl: "https://cms.kgs.life/",
+  baseUrl: EndPoints.BASE,
   options: {
     headers: {
       accept: "application/json",
-      Origin: "http://localhost:5001",
+      Origin: "*",
     },
   },
 });

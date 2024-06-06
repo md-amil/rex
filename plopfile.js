@@ -1,18 +1,13 @@
 export default function (plop) {
   plop.setActionType("custom", function (answers, config, plop) {
-    console.log({answers,config,plop})
-    plop.addPrompt([
-        {
-            type: "input",
-            name: "apple",
-            message: "Api name",
-          },
-    ])
-    // do something
-    // doSomething(config.configProp);
-    // if something went wrong
-    // throw "error message";
-    // otherwise
+    console.log({ answers, config, plop });
+    plop.setGenerator([
+      {
+        type: "input",
+        name: "apple",
+        message: "Api name",
+      },
+    ]);
     return "success status message";
   });
   plop.setGenerator("component", {
@@ -53,22 +48,13 @@ export default function (plop) {
   });
   plop.setGenerator("api", {
     description: "A React Api boilerplate in Typescript",
-    prompts: [
-      {
-        type: "input",
-        name: "api",
-        message: "Api name",
-      },
-    ],
+    prompts: [],
     actions: [
       {
-        data: { apple: "mango" },
-        type: "custom",
+        type:'addMany',
         destination: `${process.cwd()}/api`,
-        transform: (transform) => transform,
         templateFiles: "plop-templates/api",
         base: "plop-templates/api",
-        skip: (data) => console.log("apple", data),
       },
     ],
   });
